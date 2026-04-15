@@ -1,0 +1,5 @@
+{
+  "name": "交友交流社群軟體",
+  "description": "An interactive social sharing app where users introduce themselves through Bio-Cards, aggregate social footprints, and connect via shared interests.",
+  "requestFramePermissions": ["camera", "microphone"]
+}
