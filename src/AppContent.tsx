@@ -140,9 +140,14 @@ const StoryBar = () => {
 };
 
 const PostCard = ({ post, ...props }: { post: Post, [key: string]: any }) => {
+  const { user, signIn } = useAuth();
   const [liked, setLiked] = useState(false);
 
   const handleLike = async () => {
+    if (!user) {
+      alert('請先登入以按讚貼文！');
+      return;
+    }
     setLiked(!liked);
     try {
       await updateDoc(doc(db, 'posts', post.id), {
@@ -329,11 +334,29 @@ const BioCard = () => {
 };
 
 const UploadView = ({ onComplete }: { onComplete: () => void }) => {
-  const { user, profile } = useAuth();
+  const { user, profile, signIn } = useAuth();
   const [caption, setCaption] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+
+  if (!user) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 mb-4">
+          <PlusSquare size={32} />
+        </div>
+        <h2 className="text-xl font-bold mb-2">想要分享你的生活嗎？</h2>
+        <p className="text-slate-500 mb-6 max-w-xs">登入帳號即可發佈貼文、按讚以及與他人互動。</p>
+        <button 
+          onClick={signIn}
+          className="px-8 py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-100"
+        >
+          立即登入
+        </button>
+      </div>
+    );
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -462,8 +485,27 @@ const HomeView = () => {
 };
 
 const ProfileView = () => {
-  const { profile, logout } = useAuth();
+  const { user, profile, logout, signIn } = useAuth();
   
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-white">
+        <div className="w-20 h-20 bg-brand-50 rounded-3xl flex items-center justify-center text-brand-600 mb-6">
+          <User size={40} />
+        </div>
+        <h1 className="text-3xl font-display font-bold text-slate-900 mb-2">個人檔案</h1>
+        <p className="text-slate-500 mb-8 max-w-xs">登入後即可建立個人 Bio-Card，展示你的社群連結與興趣。</p>
+        <button 
+          onClick={signIn}
+          className="w-full max-w-xs flex items-center justify-center gap-3 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl"
+        >
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/layout/google.svg" alt="Google" className="w-5 h-5" />
+          連結 Google 帳號
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-lg mx-auto pt-12 pb-24 px-4">
       <div className="flex justify-between items-center mb-8">
@@ -526,10 +568,6 @@ export default function App() {
         <div className="w-12 h-12 border-4 border-brand-100 border-t-brand-600 rounded-full animate-spin" />
       </div>
     );
-  }
-
-  if (!user) {
-    return <LoginView />;
   }
 
   return (
