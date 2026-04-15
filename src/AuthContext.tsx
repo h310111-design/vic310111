@@ -57,11 +57,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async () => {
-    const { signInWithPopup, googleProvider } = await import('./firebase');
+    const { signInWithPopup, signInWithRedirect, googleProvider } = await import('./firebase');
     try {
+      // Try popup first
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sign in error:', error);
+      
+      // If popup is blocked or fails, try redirect
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+        } catch (redirectError) {
+          console.error('Redirect sign in error:', redirectError);
+          alert('登入失敗，請檢查瀏覽器是否攔截了彈出視窗或重新嘗試。');
+        }
+      } else if (error.code === 'auth/unauthorized-domain') {
+        alert('此網域尚未在 Firebase 授權。請前往 Firebase 控制台將您的 GitHub Pages 網域加入「授權網域」。');
+      } else {
+        alert(`登入出錯: ${error.message}`);
+      }
     }
   };
 
